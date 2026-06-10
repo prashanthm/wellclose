@@ -4,12 +4,17 @@ Run: `wellclose mcp` (streamable-http) — Strands runner and external Claude/ag
 from __future__ import annotations
 import json
 from mcp.server.fastmcp import FastMCP
-from sqlalchemy import or_, select, text
-from . import storage as store
+from sqlalchemy import select, text
 from .db import session
 from .models import Document, DocumentPage, ExtractedFact, GapReport, Well
 
 mcp = FastMCP("wellclose")
+
+
+def inline_verify_scores(facts: list[dict[str, object]]) -> dict[int, float]:
+    """Pass-3 self-verify scores submitted inline on each fact (§7D)."""
+    return {i: float(v) for i, f in enumerate(facts)
+            if isinstance(v := f.get("verify_confidence"), (int, float))}
 
 
 def _log(agent: str | None, run_id: str | None, tool: str, args: dict,
@@ -91,9 +96,10 @@ def submit_facts(facts_json: str, document_id: str, well_id: str = "",
                  from_diagram: bool = False, agent: str = "", run_id: str = "") -> str:
     """Submit ExtractedFacts (JSON array). Provenance (page+snippet) REQUIRED — invalid rejected (§8.3)."""
     from .pipeline.extract import submit_facts as _submit
-    _log(agent, run_id, "submit_facts", {"document_id": document_id, "n": "?"}, well_id or None)
     facts = json.loads(facts_json)
-    n = _submit(document_id, well_id or None, facts, {}, from_diagram)
+    _log(agent, run_id, "submit_facts", {"document_id": document_id, "n": len(facts)},
+         well_id or None)
+    n = _submit(document_id, well_id or None, facts, inline_verify_scores(facts), from_diagram)
     return json.dumps({"accepted": n, "rejected": len(facts) - n})
 
 

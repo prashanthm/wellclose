@@ -3,9 +3,9 @@ Resolution: API12/UWI exact, lease+name fuzzy fallback; unresolved -> orphan_fac
 Conflicts: same field_path, materially different values -> conflict_group (auto-resolution only
 for whitelisted later-superseding-form rule; everything else human). Validators are CODE, not LLM."""
 from __future__ import annotations
+import hashlib
 import json
 import re
-import uuid
 from sqlalchemy import select
 from ..db import session
 from ..models import Document, ExtractedFact, Well
@@ -73,11 +73,17 @@ def detect_conflicts(well_id: str) -> int:
             values = {(_num(f.value) if "ft" in path else (f.value or "").strip().lower())
                       for f in group}
             if len(values) > 1:
-                gid = uuid.uuid4().hex
+                gid = conflict_group_id(well_id, path)
                 for f in group:
                     f.conflict_group_id = gid
                     n += 1
     return n
+
+
+def conflict_group_id(well_id: str, field_path: str) -> str:
+    """Deterministic group id: Temporal activity retries must regroup identically (§6.3),
+    not mint fresh ids that orphan prior review-queue state."""
+    return hashlib.sha256(f"{well_id}:{field_path}".encode()).hexdigest()[:32]
 
 
 def run_validators(well_id: str) -> int:

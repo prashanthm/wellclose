@@ -5,6 +5,7 @@ Hard invariants (§8.3): no provenance -> fact rejected at submission; never inf
 ambiguous handwriting -> candidate readings with split confidence; diagrams flagged."""
 from __future__ import annotations
 import json
+import logging
 from pathlib import Path
 import yaml
 from sqlalchemy import select
@@ -13,6 +14,8 @@ from ..config import settings
 from ..db import session
 from ..llm import EXTRACTOR_VERSION, complete_json, image_part, text_part
 from ..models import Document, DocumentPage, ExtractedFact
+
+log = logging.getLogger(__name__)
 
 _TPL_DIR = Path(__file__).parent.parent / "templates"
 
@@ -131,14 +134,21 @@ def extract_document(document_id: str, batch_pages: int = 4) -> int:
     return submit_facts(document_id, doc.well_id, all_facts, verify_scores, is_diagram)
 
 
+def has_provenance(fact: dict[str, object]) -> bool:
+    """The §8.3 hard rule: a fact is only admissible with a page number and verbatim snippet."""
+    return bool(fact.get("snippet")) and bool(fact.get("page"))
+
+
 def submit_facts(document_id: str, well_id: str | None, facts: list[dict],
                  verify_scores: dict[int, float], diagram: bool) -> int:
     """Provenance validation gate (§8.3/§8.7 submit_facts): page+snippet mandatory."""
     accepted = 0
     with session() as s:
         for i, f in enumerate(facts):
-            if not f.get("snippet") or not f.get("page"):
-                continue  # invalid by hard rule — rejected
+            if not has_provenance(f):
+                log.warning("rejected fact without provenance (§8.3) doc=%s field=%s page=%r",
+                            document_id, f.get("field_path"), f.get("page"))
+                continue
             conf = max(0.0, min(1.0, float(f.get("confidence", 0))))
             s.add(ExtractedFact(
                 well_id=well_id, entity_type=f["field_path"].split(".")[0],

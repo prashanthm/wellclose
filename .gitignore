@@ -5,3 +5,6 @@ node_modules/
 ui/dist/
 data/volve/
 .pytest_cache/
+.venv/
+.ruff_cache/
+.mypy_cache/

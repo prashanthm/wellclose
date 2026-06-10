@@ -1,6 +1,5 @@
 """Service-free unit tests: validators math, API normalization, rubric gap logic, templates,
 agent specs, eval metrics. Integration tests (Docker/Ollama) are your local first-run (TASKS.md)."""
-import json
 import sys
 from pathlib import Path
 

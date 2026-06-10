@@ -2,7 +2,6 @@
 APPROVED fact — composer assembles approved facts + gap report into template language only.
 Outputs: immutable versioned JSON + HTML (print-to-PDF ready) with full citation appendix."""
 from __future__ import annotations
-import json
 from datetime import datetime, timezone
 from jinja2 import Environment, PackageLoader, select_autoescape
 from sqlalchemy import func, select

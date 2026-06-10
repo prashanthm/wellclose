@@ -2,7 +2,10 @@
 (Brief §6.3, §9.1). All heavy lifting lives here; workflow code stays deterministic."""
 from __future__ import annotations
 import json
+import logging
 from temporalio import activity
+
+log = logging.getLogger(__name__)
 
 
 @activity.defn
@@ -52,17 +55,22 @@ async def act_historian(well_id: str, run_id: str) -> str:
                     "Return ONLY the JSON array of events.")
     try:
         start, end = out.find("["), out.rfind("]")
-        events = json.loads(out[start:end + 1]) if start >= 0 else []
-    except json.JSONDecodeError:
+        if start < 0:
+            log.warning("historian_agent returned no JSON array for well %s: %.200s", well_id, out)
+            events = []
+        else:
+            events = json.loads(out[start:end + 1])
+    except json.JSONDecodeError as e:
+        log.warning("historian_agent output unparseable for well %s (%s): %.200s", well_id, e, out)
         events = []
     with session() as s:
-        for e in events:
-            s.add(WellboreEvent(well_id=well_id, event_type=str(e.get("event_type", "other"))[:32],
-                                date=e.get("date"), depth_top_ft=e.get("depth_top_ft"),
-                                depth_base_ft=e.get("depth_base_ft"),
-                                narrative=e.get("narrative"),
-                                severity_flag=bool(e.get("severity_flag")),
-                                source_fact_ids=e.get("source_fact_ids")))
+        for ev in events:
+            s.add(WellboreEvent(well_id=well_id, event_type=str(ev.get("event_type", "other"))[:32],
+                                date=ev.get("date"), depth_top_ft=ev.get("depth_top_ft"),
+                                depth_base_ft=ev.get("depth_base_ft"),
+                                narrative=ev.get("narrative"),
+                                severity_flag=bool(ev.get("severity_flag")),
+                                source_fact_ids=ev.get("source_fact_ids")))
     return json.dumps({"events": len(events)})
 
 

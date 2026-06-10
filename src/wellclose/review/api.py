@@ -6,6 +6,7 @@
 - signals Temporal W1 `review_complete` when a well's queue empties, `sign_off` on reviewer sign-off.
 - Keycloak OIDC: set WC_REVIEW_OIDC_ISSUER to enforce bearer tokens (§12); blank = dev mode."""
 from __future__ import annotations
+import logging
 from datetime import datetime, timezone
 from typing import Any
 import httpx
@@ -16,7 +17,9 @@ from sqlalchemy import or_, select
 from .. import storage
 from ..config import settings
 from ..db import session
-from ..models import Document, ExtractedFact, GapReport, Well
+from ..models import ExtractedFact, GapReport, Well
+
+log = logging.getLogger(__name__)
 
 app = FastAPI(title="WellClose Review API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -173,8 +176,8 @@ async def _signal(well_id: str, signal: str, *args: str) -> None:
         client = await Client.connect(s.temporal_target, namespace=s.temporal_namespace)
         handle = client.get_workflow_handle(f"w1-{well_id}")
         await handle.signal(signal, *args)
-    except Exception:
-        pass  # workflow may not be running (e.g., pipeline driven manually)
+    except Exception as e:  # noqa: BLE001 — workflow may legitimately not be running
+        log.warning("could not signal %s to w1-%s (manual pipeline run?): %s", signal, well_id, e)
 
 
 @app.get("/api/pages/{document_id}/{page}.png")

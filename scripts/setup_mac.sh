@@ -10,9 +10,8 @@ brew services start ollama || true
 ollama pull qwen2.5vl:32b || ollama pull qwen2.5vl:7b
 ollama pull qwen2.5:32b   || true
 ollama pull qwen2.5:7b
-docker compose up -d
+docker compose up -d --wait
 pip install -e ".[dev]"
 cp -n .env.example .env || true
-echo "Waiting for Postgres..." && sleep 8
 wellclose init-db
 echo "Setup complete. Next: wellclose worker  |  wellclose review-api  |  cd ui && npm install && npm run dev"
