@@ -1,0 +1,14 @@
+# Diagram extraction (§7D): vision-only; ALL facts derived_from_diagram=true -> always human review.
+doc_type: wellbore_schematic
+diagram: true
+entity_targets: [casing_string, plugging_record, completion_interval]
+fields:
+  - field_path: casing_string.string
+    multi: true
+    description: "Casing strings drawn: JSON {size_od_in, shoe_md_ft, cement_top_ft}."
+  - field_path: plugging_record.plug
+    multi: true
+    description: "Plugs drawn: JSON {plug_type, top_md_ft, base_md_ft}."
+  - field_path: completion_interval.perforation
+    multi: true
+    description: "Perforations drawn: JSON {top_md_ft, base_md_ft}."

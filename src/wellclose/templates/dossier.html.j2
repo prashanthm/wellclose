@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Abandonment Readiness Dossier — {{ well.api_number or well.uwi or well.name }}</title>
+<style>
+ body{font:13px/1.5 -apple-system,Segoe UI,sans-serif;margin:2.5rem;color:#1a1a1a;max-width:60rem}
+ h1{font-size:1.5rem;border-bottom:3px solid #0a3d62;padding-bottom:.4rem}
+ h2{font-size:1.1rem;color:#0a3d62;margin-top:1.6rem}
+ table{border-collapse:collapse;width:100%;margin:.5rem 0}
+ td,th{border:1px solid #ccc;padding:.3rem .5rem;text-align:left;vertical-align:top}
+ .blocker{background:#ffe3e3}.major{background:#fff3cd}.minor{background:#eef}
+ .cite{color:#555;font-size:11px}.disclaimer{font-size:11px;color:#666;border:1px solid #ddd;padding:.6rem;margin-top:2rem}
+ .conf{font-size:11px;color:#777}
+</style></head><body>
+<h1>Abandonment Readiness Dossier</h1>
+<p><b>Well:</b> {{ well.api_number or well.uwi or well.name }} · <b>Jurisdiction:</b> {{ well.jurisdiction }}
+ · <b>Version:</b> {{ version }} · <b>Generated:</b> {{ generated_at }}</p>
+<p class="conf">Approved facts: {{ confidence_summary.facts }} · mean confidence {{ confidence_summary.mean_confidence }}
+ · diagram-derived {{ confidence_summary.diagram_derived }} · corrected {{ confidence_summary.corrected }}</p>
+
+{% if gap_report %}<h2>Gap Report (criticality-ranked)</h2>
+<table><tr><th>Req</th><th>Requirement</th><th>Criticality</th><th>Suggested next sources</th></tr>
+{% for g in gap_report.gaps %}<tr class="{{ g.criticality }}"><td>{{ g.requirement_id }}</td>
+<td>{{ g.rubric }}</td><td>{{ g.criticality }}</td><td>{{ g.suggested_sources|join('; ') }}</td></tr>{% endfor %}
+</table>{% endif %}
+
+{% for section, facts in sections.items() %}<h2>{{ section|replace('_',' ')|title }}</h2>
+<table><tr><th>Field</th><th>Value</th><th>Unit</th><th>Conf</th><th>Citation</th></tr>
+{% for f in facts %}<tr><td>{{ f.field_path }}</td><td>{{ f.value }}</td><td>{{ f.unit or '' }}</td>
+<td>{{ '%.2f'|format(f.confidence) }}{% if f.diagram %} ⚑diagram{% endif %}</td>
+<td class="cite">doc {{ f.document_id[:10] }}… p.{{ f.page }} — “{{ f.snippet[:120] }}”</td></tr>{% endfor %}
+</table>{% endfor %}
+
+{% if events %}<h2>Wellbore History (Historian)</h2>
+<table><tr><th>Type</th><th>Date</th><th>Interval ft</th><th>Narrative</th></tr>
+{% for e in events %}<tr><td>{{ e.type }}</td><td>{{ e.date or '' }}</td>
+<td>{{ e.top_ft or '' }}–{{ e.base_ft or '' }}</td><td>{{ e.narrative }}</td></tr>{% endfor %}</table>{% endif %}
+
+<h2>Citation Appendix</h2>
+<table><tr><th>Fact</th><th>Source</th><th>Doc</th><th>Page</th><th>Snippet</th></tr>
+{% for c in citations %}<tr><td class="cite">{{ c.fact_id[:8] }}</td><td>{{ c.source }}</td>
+<td class="cite">{{ c.document_id[:12] }}…</td><td>{{ c.page }}</td><td class="cite">“{{ c.snippet[:160] }}”</td></tr>{% endfor %}
+</table>
+<div class="disclaimer">{{ disclaimer }}</div>
+</body></html>

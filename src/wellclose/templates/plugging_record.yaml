@@ -1,0 +1,25 @@
+# Extraction template (Brief §7D): TX RRC W-3 plugging record and equivalents.
+doc_type: plugging_record
+entity_targets: [well, wellbore, plugging_record, casing_string]
+fields:
+  - field_path: well.api_number
+    description: "API number of the well (e.g. 42-085-31234). Normalize later; copy as written."
+  - field_path: well.operator
+    description: "Operator of record at time of plugging."
+  - field_path: well.lease_name
+    description: "Lease name and well number."
+  - field_path: wellbore.td_md_ft
+    description: "Total depth of the wellbore in feet MD, with datum if stated."
+  - field_path: plugging_record.plug
+    multi: true
+    description: >
+      Each plug placed: plug number, type (cement/mechanical/cast_iron_bridge), top depth ft,
+      bottom depth ft, sacks/volume, date, verification (tagged/pressure tested) if stated.
+      Emit value as JSON object {plug_number, plug_type, top_md_ft, base_md_ft, volume, date, verification}.
+  - field_path: casing_string.left_in_hole
+    multi: true
+    description: "Casing left in hole / cut & recovered: size, depth interval. JSON {size_od_in, top_md_ft, shoe_md_ft, disposition}."
+  - field_path: plugging_record.mud_weight
+    description: "Mud weight placed between plugs, if stated."
+  - field_path: plugging_record.plugging_date
+    description: "Date plugging completed."

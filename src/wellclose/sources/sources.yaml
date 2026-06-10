@@ -1,0 +1,19 @@
+# Source endpoint constants (T2.6: VERIFY ON FIRST RUN — portals change without notice, Risk §14.2).
+# Edit here; no code changes needed. All access rules per Brief §4.5.
+bsee:
+  base: "https://www.data.bsee.gov"
+  bulk_datasets:                       # Data Center > Data Library downloadable archives
+    borehole: "/Well/Files/BoreholeRawData.zip"
+    apd_apm: "/Well/Files/APDAPMRawData.zip"
+    ewell_sundry: "/Well/Files/eWellSundryRawData.zip"
+  document_search: "/Well/WellRecords/Default.aspx"   # per-well scanned records — verify path/params
+  rate_limit_rps: 1.0
+txrrc:
+  base: "https://webapps.rrc.texas.gov"
+  wellbore_query: "/EWA/wellboreQueryAction.do"
+  completions_query: "/CMPL/publicSearchAction.do"
+  imaged_records: "https://rrcsearch3.neubus.com/esd3-rrc/api"     # imaged records service — verify
+  orphan_list_csv: "https://www.rrc.texas.gov/media/orphan-wells.csv"  # verify current path
+  rate_limit_rps: 0.5
+volve:
+  local_path: "./data/volve"   # acquire under Equinor license; never redistributed (§16.4/Risk §14.4)

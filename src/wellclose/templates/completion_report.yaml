@@ -1,0 +1,23 @@
+# Extraction template: TX RRC W-2 / G-1 completion reports and equivalents.
+doc_type: completion_report
+entity_targets: [well, wellbore, casing_string, completion_interval]
+fields:
+  - field_path: well.api_number
+    description: "API number as written."
+  - field_path: well.operator
+    description: "Operator name."
+  - field_path: well.spud_date
+    description: "Spud date."
+  - field_path: wellbore.td_md_ft
+    description: "Total depth ft MD with datum if stated."
+  - field_path: casing_string.string
+    multi: true
+    description: >
+      Each casing/tubing string: size OD inches, weight ppf, grade, setting depth (shoe) ft,
+      cement sacks/volume, cement top ft and HOW determined (reported/CBL/calculated/unknown).
+      JSON {size_od_in, weight_ppf, grade, top_md_ft, shoe_md_ft, cement_volume, cement_top_ft, cement_top_basis}.
+  - field_path: completion_interval.perforation
+    multi: true
+    description: "Perforated intervals: top ft, base ft, formation, shots. JSON {top_md_ft, base_md_ft, formation, detail}."
+  - field_path: well.gau_determination
+    description: "Groundwater protection (GAU) depth determination in ft, if present."

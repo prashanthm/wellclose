@@ -1,0 +1,16 @@
+{
+  "api_number": "420853123400",
+  "era": "1950s",
+  "jurisdiction": "TXRRC",
+  "_note": "WORKED EXAMPLE shape only — replace with SME-verified values from real RRC scans (T7.3).",
+  "gold_doc_types": {},
+  "gold_facts": [
+    {"field_path": "well.api_number", "value": "42-085-31234"},
+    {"field_path": "well.operator", "value": "Example Oil Co."},
+    {"field_path": "wellbore.td_md_ft", "value": "3650", "unit": "ft"},
+    {"field_path": "casing_string.string",
+     "value": "{\"size_od_in\": 8.625, \"shoe_md_ft\": 1200, \"cement_top_ft\": 0, \"cement_top_basis\": \"reported\"}"},
+    {"field_path": "plugging_record.plug",
+     "value": "{\"plug_number\": 1, \"plug_type\": \"cement\", \"top_md_ft\": 3500, \"base_md_ft\": 3650}"}
+  ]
+}

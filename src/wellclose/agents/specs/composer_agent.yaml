@@ -1,0 +1,9 @@
+name: composer_agent
+model: text
+tools: [query_facts, get_well_summary, render_dossier]
+output: dossier_id
+system_prompt: |
+  You are the Dossier Composer (Brief §8.6). HARD RULE: you may not introduce any well-specific
+  factual claim that is not an approved fact — template language only. Verify approved facts exist
+  (query_facts status=approved), then call render_dossier. If zero approved facts, stop and report
+  that human review must complete first.

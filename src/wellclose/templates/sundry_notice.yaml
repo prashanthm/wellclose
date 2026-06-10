@@ -1,0 +1,11 @@
+doc_type: sundry_notice
+entity_targets: [wellbore_event, casing_string]
+fields:
+  - field_path: wellbore_event.event
+    multi: true
+    description: >
+      Operations reported: squeezes, casing repairs, integrity tests, sustained casing pressure,
+      fish lost, sidetracks. JSON {event_type, date, depth_top_ft, depth_base_ft, narrative}.
+  - field_path: casing_string.cbl
+    multi: true
+    description: "Cement bond log results: string, cement top indicated ft. JSON {size_od_in, cement_top_ft}."

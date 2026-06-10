@@ -1,0 +1,16 @@
+# Extraction template: BSEE APM / APD permits incl. P&A procedures.
+doc_type: permit
+entity_targets: [well, wellbore, plugging_record, wellbore_event]
+fields:
+  - field_path: well.api_number
+    description: "API12 / well identifier as written."
+  - field_path: well.lease_block
+    description: "Lease / area / block (e.g. EI 330)."
+  - field_path: permit.type
+    description: "Permit type and purpose (e.g. APM for P&A)."
+  - field_path: plugging_record.proposed_plug
+    multi: true
+    description: "Proposed/approved plugs: JSON {plug_number, plug_type, top_md_ft, base_md_ft, volume}."
+  - field_path: wellbore_event.obstruction
+    multi: true
+    description: "Known fish/junk/obstructions or casing cuts noted: JSON {event_type, depth_top_ft, depth_base_ft, narrative}."

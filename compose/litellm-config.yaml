@@ -1,0 +1,11 @@
+# LiteLLM gateway (§11): single endpoint contract for laptop AND cluster profiles.
+# Laptop: routes to native Ollama on the Mac. Cluster: swap api_base to vLLM, nothing else changes.
+model_list:
+  - model_name: qwen-vl      # vision extraction workhorse (§16.2); pick tag for your RAM tier (§16.5)
+    litellm_params: { model: ollama/qwen2.5vl:32b, api_base: http://host.docker.internal:11434 }
+  - model_name: qwen-text    # historian / gap / composer reasoning
+    litellm_params: { model: ollama/qwen2.5:32b, api_base: http://host.docker.internal:11434 }
+  - model_name: qwen-small   # classification + page-relevance filter
+    litellm_params: { model: ollama/qwen2.5:7b, api_base: http://host.docker.internal:11434 }
+general_settings:
+  master_key: wellclose-local

@@ -1,0 +1,44 @@
+# BSEE 30 CFR 250 Subpart Q dossier rubric (Brief §5.3). REFERENCE rubric — SME gate before use.
+jurisdiction: BSEE
+requirements:
+  - id: BS-01
+    rubric: "Well construction summary: all casing strings, cement tops + verification basis"
+    satisfied_by: casing_string.string
+    criticality: blocker
+    suggested_sources: ["EOR", "WARs", "completion records", "CBLs in sundries"]
+  - id: BS-02
+    rubric: "Open and perforated intervals with current isolation status"
+    satisfied_by: completion_interval.perforation
+    criticality: blocker
+    suggested_sources: ["completion records", "workover APMs"]
+  - id: BS-03
+    rubric: "Known obstructions: fish, junk, casing cuts, prior sidetracks"
+    satisfied_by: wellbore_event.event
+    criticality: blocker
+    suggested_sources: ["WARs", "sundry notices", "EOR"]
+  - id: BS-04
+    rubric: "Sustained casing pressure history"
+    satisfied_by: wellbore_event.event
+    value_contains: "sustained casing pressure"
+    criticality: major
+    suggested_sources: ["SCP reports", "annual integrity filings"]
+  - id: BS-05
+    rubric: "Current barrier status / prior P&A attempts"
+    satisfied_by: plugging_record.plug
+    criticality: major
+    suggested_sources: ["prior APMs", "EORs"]
+  - id: BS-06
+    rubric: "Lease/structure context (platform, water depth, block)"
+    satisfied_by: well.lease_block
+    criticality: major
+    suggested_sources: ["BOEM lease tables", "platform datasets"]
+  - id: BS-07
+    rubric: "Total depth and wellbore trajectory summary"
+    satisfied_by: wellbore.td_md_ft
+    criticality: major
+    suggested_sources: ["EOR", "directional surveys"]
+  - id: BS-08
+    rubric: "Required permit forms list for P&A (APM package)"
+    satisfied_by: permit.type
+    criticality: minor
+    suggested_sources: ["BSEE eWell APM requirements"]

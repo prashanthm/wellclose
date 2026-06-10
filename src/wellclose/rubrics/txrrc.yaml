@@ -1,0 +1,45 @@
+# TX RRC Rule 3.14 / W-3A dossier rubric (Brief §5.3). REFERENCE rubric — SME review is a
+# release gate (T6.4 / Risk §14.3) before customer use.
+jurisdiction: TXRRC
+requirements:
+  - id: TX-01
+    rubric: "Usable-quality water protection depth (GAU determination)"
+    satisfied_by: well.gau_determination
+    criticality: blocker
+    suggested_sources: ["GAU determination letter (RRC GW-1/GAU)", "TCEQ records", "customer internal files (Phase 2)"]
+  - id: TX-02
+    rubric: "All casing strings with setting depths and cement records"
+    satisfied_by: casing_string.string
+    criticality: blocker
+    suggested_sources: ["W-2/G-1 completion report", "drilling records", "schematics"]
+  - id: TX-03
+    rubric: "Cement top per production/intermediate string with verification basis"
+    satisfied_by: casing_string.string
+    field_within: cement_top_ft
+    criticality: blocker
+    suggested_sources: ["CBL in sundry notices", "cementing tickets", "customer internal records (Phase 2)"]
+  - id: TX-04
+    rubric: "Total depth of wellbore"
+    satisfied_by: wellbore.td_md_ft
+    criticality: major
+    suggested_sources: ["completion report", "plugging record"]
+  - id: TX-05
+    rubric: "Open/perforated intervals and isolation status"
+    satisfied_by: completion_interval.perforation
+    criticality: blocker
+    suggested_sources: ["W-2 perforation record", "workover sundries"]
+  - id: TX-06
+    rubric: "Prior plugging operations, if any"
+    satisfied_by: plugging_record.plug
+    criticality: major
+    suggested_sources: ["W-3 filings", "P-13 if orphaned"]
+  - id: TX-07
+    rubric: "Operator-of-record chain (P-4 history)"
+    satisfied_by: well.operator
+    criticality: major
+    suggested_sources: ["P-4 transfer filings"]
+  - id: TX-08
+    rubric: "Known wellbore obstructions / fish / junk"
+    satisfied_by: wellbore_event.event
+    criticality: major
+    suggested_sources: ["sundry notices", "workover reports"]

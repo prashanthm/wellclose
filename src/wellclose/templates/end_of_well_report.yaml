@@ -1,0 +1,13 @@
+doc_type: end_of_well_report
+entity_targets: [well, wellbore, casing_string, wellbore_event]
+fields:
+  - field_path: well.uwi
+    description: "Well UWI / name (e.g. NO 15/9-F-7)."
+  - field_path: wellbore.td_md_ft
+    description: "Final TD (convert meters? NO — copy as written with unit; normalization is downstream §5.4)."
+  - field_path: casing_string.string
+    multi: true
+    description: "Casing program as run: JSON {size_od_in, shoe_md, cement_top, cement_top_basis, unit}."
+  - field_path: wellbore_event.event
+    multi: true
+    description: "NPT / incidents / sidetracks: JSON {event_type, date, depth_top, depth_base, narrative, unit}."
