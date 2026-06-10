@@ -45,11 +45,16 @@ class PoliteClient:
         self._failures = 0
         self._client = httpx.Client(headers={"User-Agent": settings().user_agent},
                                     timeout=60, follow_redirects=True)
+        # RFC 9309 semantics: parse robots.txt only on 200; 4xx (incl. 401/403) means
+        # no crawl policy is published -> allowed. urllib's read() treats 403 as
+        # disallow-all, which would wrongly block hosts that just deny /robots.txt.
+        self._robots: urllib.robotparser.RobotFileParser | None = None
         try:
-            rp = urllib.robotparser.RobotFileParser()
-            rp.set_url(base.rstrip("/") + "/robots.txt")
-            rp.read()
-            self._robots: urllib.robotparser.RobotFileParser | None = rp
+            r = self._client.get(base.rstrip("/") + "/robots.txt")
+            if r.status_code == 200:
+                rp = urllib.robotparser.RobotFileParser()
+                rp.parse(r.text.splitlines())
+                self._robots = rp
         except Exception:
             self._robots = None
 
@@ -74,6 +79,23 @@ class PoliteClient:
         except Exception:
             self._failures += 1
             raise
+
+    @retry(stop=stop_after_attempt(4), wait=wait_exponential_jitter(initial=1, max=30))
+    def post(self, url: str, **kw) -> httpx.Response:
+        self._gate(url)
+        self._last = time.monotonic()
+        try:
+            r = self._client.post(url, **kw)
+            r.raise_for_status()
+            self._failures = 0
+            return r
+        except Exception:
+            self._failures += 1
+            raise
+
+    @property
+    def cookies(self) -> httpx.Cookies:
+        return self._client.cookies
 
 
 def fetch_meta(resp: httpx.Response) -> dict:

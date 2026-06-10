@@ -22,8 +22,8 @@ Legend: [x] implemented in this repo | [R] implemented, requires local runtime t
 - [x] T2.3 TXRRC source module (wellbore/imaged-records fetch; endpoint constants in sources.yaml)
 - [x] T2.4 Volve local-path adapter (no redistribution per §16.4 data rules)
 - [x] T2.5 Provenance at fetch: url, timestamp, headers, checksum; SOURCES.md/LICENSES.md
-- [R] T2.6 FIRST-RUN TASK: verify/adjust endpoint constants in src/wellclose/sources/sources.yaml against live portals (Risk §14.2)
-- [ ] T2.7 Corpus manifest build per §4.1/§4.2 selection criteria (50 GoM + 200 TX + Volve)
+- [x] T2.6 Endpoint constants verified against live portals 2026-06-10; `wellclose corpus verify-endpoints` re-probes on demand (Risk §14.2). Dead URLs replaced: BSEE per-report-type zips, TXRRC Neubus SPA flow, monthly orphan zip
+- [x] T2.7 Corpus manifest builder + acquire driver: `wellclose corpus build|acquire|status` (src/wellclose/corpus.py). §4.1 GoM selection from BSEE borehole bulk, §4.2 TX from orphan inventory (CMPL search not crawled — robots Disallow). BSEE scanned files + Volve are manual per SOURCES.md
 
 ## T3 Document pipeline (Brief §7 Stages B–E)
 - [x] T3.1 Stage B: pypdfium2 page render 300dpi, deskew hook, OCR adapter (Tesseract default, docTR optional ADR-003), ocr_quality_score

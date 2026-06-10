@@ -8,3 +8,8 @@ data/volve/
 .venv/
 .ruff_cache/
 .mypy_cache/
+data/bulk/
+data/corpus_state.json
+data/volve/
+.playwright-mcp/
+data/corpus_spike.json

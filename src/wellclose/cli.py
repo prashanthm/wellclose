@@ -6,6 +6,65 @@ import typer
 
 app = typer.Typer(name="wellclose", no_args_is_help=True,
                   help="WellClose AI — abandonment dossier pipeline (Brief v1.4)")
+corpus_app = typer.Typer(name="corpus", no_args_is_help=True,
+                         help="Corpus manifest build + acquisition (Brief §4, T2.6/T2.7)")
+app.add_typer(corpus_app)
+
+
+@corpus_app.command("verify-endpoints")
+def corpus_verify_endpoints() -> None:
+    """T2.6 ritual: probe every configured source URL; fail if any is dead."""
+    from .corpus import verify_endpoints
+    out = verify_endpoints()
+    typer.echo(json.dumps(out, indent=2))
+    if not out["ok"]:
+        raise typer.Exit(1)
+
+
+@corpus_app.command("build")
+def corpus_build(gom: int = 50, tx: int = 200, volve: bool = True, spike: bool = False,
+                 out: str = "data/corpus_manifest.json") -> None:
+    """Build the §4 corpus manifest (--spike → 5 wells/source, M0 gate)."""
+    from pathlib import Path
+    from .corpus import build_manifest
+    m = build_manifest(Path(out), gom=gom, tx=tx, volve=volve, spike=spike)
+    typer.echo(json.dumps({"entries": len(m["entries"]), **m["counts"], "out": out}, indent=2))
+
+
+@corpus_app.command("acquire")
+def corpus_acquire(manifest: str = "data/corpus_manifest.json", source: str = "",
+                   limit: int = 0) -> None:
+    """Acquire everything in the manifest (resume-safe; rerun after any interruption)."""
+    from pathlib import Path
+    from .corpus import acquire_manifest
+    report = acquire_manifest(Path(manifest), source=source or None, limit=limit or None)
+    typer.echo(json.dumps(report, indent=2))
+
+
+@corpus_app.command("status")
+def corpus_status_cmd(manifest: str = "data/corpus_manifest.json") -> None:
+    """Manifest progress, per-source DB counts, dedupe + strata checks."""
+    from pathlib import Path
+    from .corpus import corpus_status
+    typer.echo(json.dumps(corpus_status(Path(manifest)), indent=2))
+
+
+@corpus_app.command("volve-verify")
+def corpus_volve_verify() -> None:
+    """Check the local Volve subset exists and the license acceptance is recorded."""
+    from pathlib import Path
+    from .sources.base import source_config
+    root = Path(source_config()["volve"]["local_path"])
+    lic = Path("data/LICENSES.md").read_text()
+    pdfs = list(root.glob("**/*.pdf")) if root.exists() else []
+    ok = bool(pdfs) and "____" not in lic.split("Volve")[1][:400] if "Volve" in lic else False
+    typer.echo(json.dumps({"path": str(root), "pdfs": len(pdfs),
+                           "license_accepted": "____" not in lic, "ok": bool(pdfs) and ok}, indent=2))
+    if not (pdfs and ok):
+        typer.echo("Download the Volve well-report subsets from "
+                   "https://data.equinor.com/dataset/Volve into data/volve/ and record the "
+                   "license acceptance date in data/LICENSES.md", err=True)
+        raise typer.Exit(1)
 
 
 @app.command()

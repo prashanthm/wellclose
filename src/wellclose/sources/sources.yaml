@@ -1,19 +1,35 @@
-# Source endpoint constants (T2.6: VERIFY ON FIRST RUN — portals change without notice, Risk §14.2).
+# Source endpoint constants (T2.6: verified against live portals 2026-06-10 — `wellclose corpus
+# verify-endpoints` re-probes these; portals change without notice, Risk §14.2).
 # Edit here; no code changes needed. All access rules per Brief §4.5.
 bsee:
   base: "https://www.data.bsee.gov"
-  bulk_datasets:                       # Data Center > Data Library downloadable archives
-    borehole: "/Well/Files/BoreholeRawData.zip"
-    apd_apm: "/Well/Files/APDAPMRawData.zip"
-    ewell_sundry: "/Well/Files/eWellSundryRawData.zip"
-  document_search: "/Well/WellRecords/Default.aspx"   # per-well scanned records — verify path/params
+  bulk_datasets:                       # verified against /Main/RawData.aspx 2026-06-10
+    borehole: "/Well/Files/BoreholeRawData.zip"          # well master: API, location, status, operator
+    api_lookup: "/Well/Files/APIRawData.zip"
+    api_changes: "/Well/Files/APIChangesRawData.zip"
+    apd: "/Well/Files/APDRawData.zip"                    # permit applications (paper-era)
+    ewell_apd: "/Well/Files/eWellAPDRawData.zip"
+    ewell_apm: "/Well/Files/eWellAPMRawData.zip"         # permit modifications incl. P&A (§4.1)
+    ewell_eor: "/Well/Files/eWellEORRawData.zip"         # End of Operations Reports
+    ewell_war: "/Well/Files/eWellWARRawData.zip"         # Well Activity Reports
+    scanned_docs_index: "/Other/Files/ScannedDocsRawData.zip"  # index of scanned well files (for FRS requests)
+    decom_cost: "/Leasing/Files/DecomCostEstRawData.zip" # decommissioning cost estimates
+  raw_data_catalog: "/Main/RawData.aspx"   # endpoint-drift canary: re-scrape href$=".zip" here
+  document_search: "/Well/WellRecords/Default.aspx"  # scanned records are query-only (File Request
+                                                     # System, human-fulfilled) — DESCOPED for MVP;
+                                                     # gold P&A wells requested manually, see SOURCES.md
   rate_limit_rps: 1.0
 txrrc:
-  base: "https://webapps.rrc.texas.gov"
+  ewa_base: "https://webapps2.rrc.texas.gov"   # EWA moved off webapps. (old host 404s, verified 2026-06-10)
+  cmpl_base: "https://webapps.rrc.texas.gov"
   wellbore_query: "/EWA/wellboreQueryAction.do"
+  orphan_query: "/EWA/orphanWellQueryAction.do"
   completions_query: "/CMPL/publicSearchAction.do"
-  imaged_records: "https://rrcsearch3.neubus.com/esd3-rrc/api"     # imaged records service — verify
-  orphan_list_csv: "https://www.rrc.texas.gov/media/orphan-wells.csv"  # verify current path
+  imaged_records: "https://rrcsearch3.neubus.com/esd3-rrc/api"   # verified live 2026-06-10
+  # orphan list is a monthly-slugged zip (/media/<hash>/orphanwells-MM-YY.zip) — always scrape
+  # orphan_page for the current href; the old /media/orphan-wells.csv is dead.
+  orphan_page: "https://www.rrc.texas.gov/oil-and-gas/research-and-statistics/well-information/orphan-wells-12-months/"
   rate_limit_rps: 0.5
 volve:
-  local_path: "./data/volve"   # acquire under Equinor license; never redistributed (§16.4/Risk §14.4)
+  local_path: "./data/volve"   # acquire under Equinor Open Data License; never redistributed (§16.4/Risk §14.4)
+  portal: "https://data.equinor.com/dataset/Volve"   # manual subset download (well reports only — full set is TB-scale)

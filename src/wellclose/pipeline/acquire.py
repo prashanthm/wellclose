@@ -1,10 +1,13 @@
 """Stage A — Acquisition (Brief §7A). Idempotent: content-hash dedupe; raw bytes immutable."""
 from __future__ import annotations
+import logging
 from sqlalchemy import select
 from .. import storage
 from ..db import session
 from ..models import Document, Well
 from ..sources.volve import get_source
+
+log = logging.getLogger(__name__)
 
 
 def ensure_well(api_number: str | None = None, uwi: str | None = None,
@@ -43,9 +46,7 @@ def acquire(source_name: str, well_selector: dict, well_id: str | None = None) -
             doc_ids.append(doc_id)
         except Exception as e:  # noqa: BLE001 — gap-flag, don't block (§6.3)
             errors.append({"url": ref.url, "error": str(e)})
-    if errors:
-        with session() as s:
-            pass  # errors surface in the acquisition report below
+            log.warning("acquire: fetch failed for %s: %s", ref.url, e)
     return doc_ids
 
 
