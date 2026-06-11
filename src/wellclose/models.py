@@ -112,7 +112,8 @@ class WellboreEvent(Base):
 
 class Document(Base):
     __tablename__ = "document"
-    document_id: Mapped[str] = mapped_column(String(64), primary_key=True)  # sha256(raw_bytes) §4.5
+    # sha256(raw_bytes) §4.5; split children append ":first-last", so allow headroom past 64
+    document_id: Mapped[str] = mapped_column(String(80), primary_key=True)
     source: Mapped[str] = mapped_column(String(32))                          # bsee|txrrc|volve|upload
     source_url: Mapped[str | None] = mapped_column(Text)
     fetch_meta: Mapped[dict | None] = mapped_column(JSON)                    # ts, headers, checksum
@@ -123,7 +124,7 @@ class Document(Base):
     ocr_quality_score: Mapped[float | None] = mapped_column(Float)
     raw_uri: Mapped[str | None] = mapped_column(Text)
     stage: Mapped[str] = mapped_column(String(16), default="acquired")       # acquired|rendered|classified|extracted|resolved|failed
-    split_parent_id: Mapped[str | None] = mapped_column(String(64))
+    split_parent_id: Mapped[str | None] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
