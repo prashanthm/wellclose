@@ -26,6 +26,14 @@ def render_document(document_id: str) -> int:
                 return len(existing)
         source = doc.source
     raw = storage.get_raw(source, document_id)
+    if raw[:5] != b"%PDF-":
+        # Not a PDF — e.g. a BSEE per-well search HTML page (scanned files are query-only,
+        # see data/SOURCES.md). Mark non-renderable and skip rather than crash the batch.
+        with session() as s:
+            d = s.get(Document, document_id)
+            if d:
+                d.stage = "failed"
+        return 0
     ocr = get_adapter()
     scale = settings().render_dpi / 72.0
     pdf = pdfium.PdfDocument(raw)
