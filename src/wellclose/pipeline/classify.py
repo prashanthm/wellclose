@@ -64,6 +64,16 @@ def classify_document(document_id: str, max_pages: int = 6) -> list[dict]:
                               allow_escalation=True)
     segments = _coerce_segments(result)
     segments = [_norm_segment(s, total) for s in segments]
+    # Dedup degenerate repeats (the small model sometimes loops the same segment N times,
+    # which would mint N identical child docs). Key on (doc_type, first, last).
+    seen: set[tuple] = set()
+    deduped = []
+    for s in segments:
+        k = (s["doc_type"], s["first_page"], s["last_page"])
+        if k not in seen:
+            seen.add(k)
+            deduped.append(s)
+    segments = deduped
     if not segments:   # model gave nothing usable — treat whole doc as one unknown segment
         segments = [{"doc_type": "unknown", "first_page": 1, "last_page": total, "confidence": 0.3}]
     with session() as s:

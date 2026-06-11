@@ -117,7 +117,11 @@ def pipeline(document_id: str = "", well_id: str = "") -> None:
                 Document.well_id == well_id, Document.split_parent_id.is_(None))))
     wells = set()
     for d in ids:
-        typer.echo(f"render {d[:12]}… pages={render_document(d)}")
+        pages = render_document(d)
+        typer.echo(f"render {d[:12]}… pages={pages}")
+        if pages == 0:                       # non-PDF / unrenderable — nothing to classify (§4.5)
+            typer.echo("  skip: not renderable")
+            continue
         typer.echo(f"classify -> {classify_document(d)}")
         with session() as s:
             children = list(s.scalars(select(Document.document_id).where(
