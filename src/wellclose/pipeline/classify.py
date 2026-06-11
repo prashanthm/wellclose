@@ -25,6 +25,24 @@ _SCHEMA = {"type": "object", "properties": {"segments": {"type": "array", "items
     "required": ["segments"]}
 
 
+def _coerce_segments(result: object) -> list[dict]:
+    """The small model's JSON shape varies: {'segments': [...]}, a bare [...], or a single
+    segment object {'doc_type':...}. Normalize all to a list of segment dicts."""
+    if isinstance(result, dict):
+        if isinstance(result.get("segments"), list):
+            return result["segments"]
+        if "doc_type" in result:          # a lone segment returned unwrapped
+            return [result]
+        # some other single-key wrapper around the list
+        for v in result.values():
+            if isinstance(v, list):
+                return v
+        return []
+    if isinstance(result, list):
+        return result
+    return []
+
+
 def classify_document(document_id: str, max_pages: int = 6) -> list[dict]:
     from .. import storage
     s_ = settings()
@@ -44,7 +62,10 @@ def classify_document(document_id: str, max_pages: int = 6) -> list[dict]:
     result, _ = complete_json(s_.model_small, _SYS, parts, schema_hint=_SCHEMA,
                               tags={"stage": "classify", "document_id": document_id},
                               allow_escalation=True)
-    segments = result["segments"] if isinstance(result, dict) else result
+    segments = _coerce_segments(result)
+    segments = [_norm_segment(s, total) for s in segments]
+    if not segments:   # model gave nothing usable — treat whole doc as one unknown segment
+        segments = [{"doc_type": "unknown", "first_page": 1, "last_page": total, "confidence": 0.3}]
     with session() as s:
         doc = s.get(Document, document_id)
         if len(segments) == 1:
@@ -65,3 +86,22 @@ def classify_document(document_id: str, max_pages: int = 6) -> list[dict]:
                                    page_count=seg["last_page"] - seg["first_page"] + 1))
         doc.stage = "classified"
     return segments
+
+
+def _norm_segment(seg: dict, total: int) -> dict:
+    """Fill missing fields and clamp page ranges so a sloppy model segment can't crash
+    or create a child doc with a bad range."""
+    dt = seg.get("doc_type") if isinstance(seg, dict) else None
+    first = seg.get("first_page", 1) if isinstance(seg, dict) else 1
+    last = seg.get("last_page", total) if isinstance(seg, dict) else total
+    try:
+        first = max(1, min(int(first), total))
+        last = max(first, min(int(last), total))
+    except (TypeError, ValueError):
+        first, last = 1, total
+    try:
+        conf = float(seg.get("confidence", 0.5)) if isinstance(seg, dict) else 0.5
+    except (TypeError, ValueError):
+        conf = 0.5
+    return {"doc_type": dt if dt in TAXONOMY else "unknown",
+            "first_page": first, "last_page": last, "confidence": conf}

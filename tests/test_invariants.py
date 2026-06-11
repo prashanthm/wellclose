@@ -50,6 +50,24 @@ def test_eval_cli_command_registered():
     assert "eval" in names
 
 
+def test_classify_segment_coercion():
+    """The small classifier's JSON shape varies; classify must never KeyError on it."""
+    from wellclose.pipeline.classify import _coerce_segments, _norm_segment
+    seg = [{"doc_type": "permit"}]
+    assert _coerce_segments({"segments": seg}) == seg          # canonical
+    assert _coerce_segments(seg) == seg                        # bare list
+    assert _coerce_segments({"doc_type": "permit", "first_page": 1}) == \
+        [{"doc_type": "permit", "first_page": 1}]              # lone unwrapped segment
+    assert _coerce_segments({"result": seg}) == seg            # other wrapper key
+    assert _coerce_segments("garbage") == [] and _coerce_segments({}) == []
+    # normalization clamps page ranges and defaults bad fields
+    assert _norm_segment({"doc_type": "plugging_record", "first_page": 2, "last_page": 99,
+                          "confidence": 0.8}, total=16) == \
+        {"doc_type": "plugging_record", "first_page": 2, "last_page": 16, "confidence": 0.8}
+    assert _norm_segment({"doc_type": "bogus", "first_page": "x"}, total=10) == \
+        {"doc_type": "unknown", "first_page": 1, "last_page": 10, "confidence": 0.5}
+
+
 def test_validators_flag_physical_inconsistencies():
     """§7E validators are code, not LLM: plug top below base must flag."""
     from wellclose.pipeline.resolve import _num
