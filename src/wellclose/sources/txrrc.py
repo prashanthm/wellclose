@@ -41,6 +41,10 @@ class TXRRCSource:
         self._bearer: str | None = None
         self._csrf: str | None = None
 
+    def reset_breakers(self) -> None:
+        for c in (self.img_client, self.fs_client, self.www_client):
+            c.reset_breaker()
+
     # ---------- Neubus session ----------
 
     def _public_token(self) -> str:
@@ -111,7 +115,8 @@ class TXRRCSource:
     def neubus_search(self, **kw: Any) -> list[dict]:
         """Search imaged well records; returns [{doc_id, fields:{...}}] (one per record box)."""
         out = self._nde_post("/getSearchImages", self.neusearch_payload(**kw))
-        images = (out.get("data", {}).get("data", {}).get("search_results", {}) or {}).get("images", [])
+        sr = (out.get("data", {}).get("data", {}) or {}).get("search_results", {}) or {}
+        images = sr.get("images", []) if isinstance(sr, dict) else sr
         results = []
         for im in images:
             fields = {f["field_name"]: f["field_value"] for f in im.get("image_fields", [])}
@@ -123,7 +128,10 @@ class TXRRCSource:
         view = self._nde_post("/getViewRecordOauth",
                               {"doc_id": doc_id, "profile_id": WELL_RECORDS_PROFILE})
         files: list[dict] = []
-        for tab, entries in (view.get("data", {}).get("data", {}) or {}).items():
+        # data.data is normally {tab: [entries]} but some records return a bare [entries] list.
+        view_data = view.get("data", {}).get("data", {}) or {}
+        tabs = view_data.items() if isinstance(view_data, dict) else [("Main", view_data)]
+        for tab, entries in tabs:
             for entry in entries or []:
                 image_id = entry.get("doc_id")
                 if not (image_id and entry.get("has_files")):

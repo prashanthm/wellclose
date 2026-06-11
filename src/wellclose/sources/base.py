@@ -58,6 +58,12 @@ class PoliteClient:
         except Exception:
             self._robots = None
 
+    def reset_breaker(self) -> None:
+        """Clear the consecutive-failure count. The breaker guards against hammering a
+        down host within one burst; a new logical unit of work (e.g. the next well in a
+        corpus run) should start fresh rather than inherit a latched-open breaker."""
+        self._failures = 0
+
     def _gate(self, url: str) -> None:
         if self._failures >= 5:
             raise RuntimeError(f"Circuit breaker open for {self.base} (5 consecutive failures)")

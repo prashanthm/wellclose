@@ -86,6 +86,30 @@ def test_orphan_zip_href_regex():
     assert m and m.group(1) == "/media/lzomznnu/orphanwells-05-26.zip"
 
 
+def test_neubus_files_handles_list_or_dict_viewdata(monkeypatch):
+    """getViewRecordOauth returns {tab:[entries]} normally but a bare [entries] for some
+    records — both must parse without 'list has no attribute get' (full-pull regression)."""
+    from wellclose.sources import txrrc as mod
+
+    class FakeTX:
+        _nde_post = mod.TXRRCSource._nde_post
+        neubus_files = mod.TXRRCSource.neubus_files
+
+        def __init__(self, viewdata, files):
+            self._view = {"message": "success", "data": {"data": viewdata}}
+            self._files = {"message": "success", "data": {"data": {"files": files}}}
+
+        def _nde_post(self, path, payload):  # noqa: ARG002
+            return self._view if "ViewRecord" in path else self._files
+
+    entry = {"doc_id": "img1", "has_files": 1}
+    f = [{"nuid": "n1", "name": "a.pdf", "format": "pdf", "page_count": "3", "file_size": "10"}]
+    for viewdata in ({"Main": [entry]}, [entry]):       # dict form and bare-list form
+        tx = FakeTX(viewdata, f)
+        out = mod.TXRRCSource.neubus_files(tx, "doc")
+        assert len(out) == 1 and out[0]["nuid"] == "n1"
+
+
 def test_manifest_entry_key_stable():
     from wellclose.corpus import _entry_key
     e = {"source": "txrrc", "selector": {"well_documents": "30131005", "district": "08"}}

@@ -13,3 +13,6 @@ data/corpus_state.json
 data/volve/
 .playwright-mcp/
 data/corpus_spike.json
+.DS_Store
+.claude/
+data/corpus_manifest.json
